@@ -1,0 +1,12 @@
+[general]
+  runDirRoot = '../runs/test'
+  inputDir = './input'
+  prlTemplateFile = 'template.prl'
+  overwrite = false
+  fields = ['F1','F2','F3','F4']
+  nProcessor = 1
+
+[pearl]
+  inputDirMeteo = '${general.inputDir}/Meteo'
+  pearlBinary = '${general.inputDir}/Exe/pearlmodel.exe'
+  
