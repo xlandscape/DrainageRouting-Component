@@ -18,10 +18,25 @@ dict_field_area_m2 = {'F1' : 200,
                     'F2' : 200,
                     'F3' : 200,
                     'F4' : 200}
+
+"""
+missing : obtaining the input vectors for those multiplications
+table
+J
+  F1 F2 F3 F4
+T1
+T2
+T3
+T4
+...
+
+
+"""
 dict_J_g_per_m2_h1 = {'F1' : 0.8,
             'F2' : 10,
             'F3' : 0.1,
             'F4' : 2.3}
+
 dict_reaches_length_m = {'R601' : 50,
                         'R602' : 100,
                         'R603' : 25,
