@@ -14,34 +14,28 @@ import pandas as pd
 C_import = np.array([[1,0,0,0],[0,1,1,0],[0,0,0,0],[0,0,1,0],[0,0,0,0]])
 field_names = np.array(['F1','F2','F3','F4'])
 reaches_names = np.array(['R601','R602','R603','R604','R605'])
-dict_field_area_m2 = {'F1' : 200,
+"""
+the fields area will be obtained from the system (unit : m2)
+"""
+dict_field_area = {'F1' : 200,
                     'F2' : 200,
                     'F3' : 200,
                     'F4' : 200}
 
-"""
-missing : obtaining the input vectors for those multiplications
-table
-J
-  F1 F2 F3 F4
-T1
-T2
-T3
-T4
-...
 
-
-"""
 dict_J_g_per_m2_h1 = {'F1' : 0.8,
             'F2' : 10,
             'F3' : 0.1,
             'F4' : 2.3}
-
-dict_reaches_length_m = {'R601' : 50,
+"""
+the reaches length will be obtained from the system (unit : m)
+"""
+dict_reaches_length = {'R601' : 50,
                         'R602' : 100,
                         'R603' : 25,
                         'R604' : 135,
                         'R605' : 210}
+
 
 def main(config_file_path: Path) -> None:
     """Entry point
@@ -59,29 +53,46 @@ class AttributeDrainageFluxes :
         Args:
             config_file_path: path to toml config file
         """
-        self.config_root = load_config('D:/2_Cascade_toxswa/landscapepearl/src/config.toml')# config_file_path)
+        self.config_root = load_config(config_file_path)
         self.config = self.config_root.general
         self.dir = Path(self.config.runDirRoot)
-        self.input_dir = self.dir.joinpath(Path(self.config.inputDir))
+        self.input_dir = Path(self.config.inputDir)
         self.fields = self.config.fields  
         self.reaches = reaches_names #self.config.reaches 
+        self.HML_firstRow = None
+        self.HML_nRow = None
+        self.HML_skipRows = [1]
 
-    def setup(self) -> None :
+    def setup(self):
 
-        self.fields_flux = self.create_array(dict_J,self.fields)
+        self.fields_flux = self.create_array(dict_J_g_per_m2_h1,self.fields)#.prepare_mass_flux_table(time)
         self.fields_area = self.create_array(dict_field_area,self.fields)
         self.reaches_length = self.create_array(dict_reaches_length, self.reaches)
-        
         self.matrix_flux = self.load_matrix(self.dir)
 
         self.reaches_fluxes = self.attribute_fluxes(self.fields_flux, self.matrix_flux, self.fields_area, self.reaches_length)
         return self.reaches_fluxes 
     
+    def prepare_mass_flux_table(self) :
+
+        MassFluxLoadingsTable = pd.read_csv(os.path.join(self.generalConfig['inputDir'],'Jmass.csv'),
+                                                     header = [0], parse_dates=[0],infer_datetime_format = True,
+                                                     skiprows = self.HML_skipRows)
+        if self.HML_nRow is None:
+            filter = ((MassFluxLoadingsTable.Time>=self.startTime) & 
+                      (MassFluxLoadingsTable.Time<=self.endTime+dt.timedelta(hours=1)))
+            MassFluxLoadingsTable = MassFluxLoadingsTable.loc[filter,]
+            MassFluxLoadingsTable.reset_index(drop=True,inplace=True)
+            self.HML_firstRow = filter.idxmax() + 2
+            self.HML_nRow = filter.sum()
+            self.HML_skipRows = lambda x: not(x==0 or (x>=self.HML_firstRow and (x<=self.HML_firstRow+self.HML_nRow)))
+        return MassFluxLoadingsTable
+    
     def load_matrix(self, root_dir : Path):
         """returns the matrix as an array"""
         flux_file = 'matrix_xAquatics.csv'
 
-        matrix = pd.read_csv("D:/2_Cascade_toxswa/landscapepearl/input/matrix_xAquatics.csv", sep = ';')# self.input_dir.joinpath(flux_file))
+        matrix = pd.read_csv(Path(self.config.inputDir.joinpath(flux_file)), sep = ';')# self.input_dir.joinpath(flux_file))
         matrix = matrix.drop(matrix.columns[0], axis=1).to_numpy()
         return matrix
     

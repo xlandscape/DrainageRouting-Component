@@ -5,12 +5,12 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "Python: Current File",
+            "name": "demo",
             "type": "python",
             "request": "launch",
             "program": "src/xDrainageRouting.py",
             "console": "integratedTerminal",
-            "cwd" : "${workspaceRoot}",
+            "cwd" : "${workspaceFolder}",
             "args": ["input/config.toml"]
         }
     ]
