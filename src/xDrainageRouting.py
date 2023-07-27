@@ -53,10 +53,14 @@ class AttributeDrainageFluxes :
         Args:
             config_file_path: path to toml config file
         """
+        
         self.config_root = load_config(config_file_path)
         self.config = self.config_root.general
         self.dir = Path(self.config.runDirRoot)
+        self.output_file = self.dir.joinpath('LineicMassDra.csv')
         self.input_dir = Path(self.config.inputDir)
+
+    
         self.fields = self.config.fields  
         self.reaches = reaches_names #self.config.reaches 
         self.HML_firstRow = None
@@ -65,14 +69,21 @@ class AttributeDrainageFluxes :
 
     def setup(self):
 
-        self.fields_flux = self.create_array(dict_J_g_per_m2_h1,self.fields)#.prepare_mass_flux_table(time)
+        fields_flux_time = pd.read_csv(Path(self.config.inputDir.joinpath('Jmass.csv')), sep = ',', skiprows = [1])
+        self.time = list(fields_flux_time.Time)
+        self.fields_flux_data = fields_flux_time.drop('Time', axis = 1)
+
         self.fields_area = self.create_array(dict_field_area,self.fields)
         self.reaches_length = self.create_array(dict_reaches_length, self.reaches)
-        self.matrix_flux = self.load_matrix(self.dir)
-
-        self.reaches_fluxes = self.attribute_fluxes(self.fields_flux, self.matrix_flux, self.fields_area, self.reaches_length)
-        return self.reaches_fluxes 
+        self.matrix_flux = self.load_dataframe_as_array(self.input_dir, 'matrix_xAquatics.csv')
     
+        self.attribute_fluxes(self.fields_flux_data, 
+                              self.matrix_flux, 
+                              self.fields_area, 
+                              self.reaches_length, 
+                              self.reaches, 
+                              self.time)
+        
     def prepare_mass_flux_table(self) :
 
         MassFluxLoadingsTable = pd.read_csv(os.path.join(self.generalConfig['inputDir'],'Jmass.csv'),
@@ -88,19 +99,32 @@ class AttributeDrainageFluxes :
             self.HML_skipRows = lambda x: not(x==0 or (x>=self.HML_firstRow and (x<=self.HML_firstRow+self.HML_nRow)))
         return MassFluxLoadingsTable
     
-    def load_matrix(self, root_dir : Path):
+    #def get_time(self, path):
+        
+    def load_dataframe_as_array(self, input_dir : Path, file : str):
         """returns the matrix as an array"""
-        flux_file = 'matrix_xAquatics.csv'
-
-        matrix = pd.read_csv(Path(self.config.inputDir.joinpath(flux_file)), sep = ';')# self.input_dir.joinpath(flux_file))
-        matrix = matrix.drop(matrix.columns[0], axis=1).to_numpy()
-        return matrix
+        df = pd.read_csv(Path(input_dir.joinpath(file)), sep = ',')
+        df = df.drop(df.columns[0], axis=1).to_numpy()
+        return df
     
-    def attribute_fluxes(self, fields_flux, matrix_flux, fields_area, reaches_length):
+    def attribute_fluxes(self, 
+                         fields_flux, 
+                         matrix_flux, 
+                         fields_area, 
+                         reaches_length, 
+                         reaches_names, 
+                         time):
         """returns the fluxes per reach per meter """
-        flux_per_reach = np.matmul(matrix_flux, np.multiply(fields_flux, fields_area ))
-        lineic_flux_per_reach = np.divide(flux_per_reach, reaches_length )
-        return  lineic_flux_per_reach
+
+        df = pd.DataFrame(columns = reaches_names)
+        for i in np.arange(len(time)) :
+            flux_per_reach = np.matmul(matrix_flux, np.multiply(list(fields_flux.iloc[i]), fields_area ))
+            lineic_flux_per_reach = np.divide(flux_per_reach, reaches_length )
+            df = pd.concat([df,pd.DataFrame(data = [lineic_flux_per_reach], columns = reaches_names)])
+        df.index = np.arange(len(time))
+        time_df = pd.DataFrame(data = time)
+        lineicmassdra = pd.concat([time_df, df], axis = 1)
+        lineicmassdra.to_csv(self.output_file, index = False)
     
     def create_array(self, dict, list):
         """returns an array of values for a given dictionnary and list """
