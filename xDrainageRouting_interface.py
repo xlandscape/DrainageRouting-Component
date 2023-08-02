@@ -16,6 +16,7 @@ import base
 import attrib
 import xDrainageRouting
 from pathlib import Path
+import pandas as pd
 
 reach_field_matrix_file = "reach_field_matrix.csv"
 drainage_mass_flux_file = "JMass.csv"
@@ -49,7 +50,8 @@ class xDRAINAGEROUTING_Wraper(base.Component):
     # #below : changelog template
     # #VERSION.added("1.2.20", "components.CascadeToxswa component")
     
-     def __init__(self, name, observer, store):
+     def __init__(self, name):
+
     #     """
     #     Initializes the LandscapePEARL component.
 
@@ -144,7 +146,7 @@ class xDRAINAGEROUTING_Wraper(base.Component):
                 
     #         ))
         
-        def run(self):
+    def run(self):
         """
         Runs the component.
 
@@ -215,7 +217,7 @@ class xDRAINAGEROUTING_Wraper(base.Component):
                         'R605' : 210}'\n") #self.inputs["REACHESLENGTH"].read().values
             f.write("outputVars = 'LineicMassDrainage'\n")
             
-    def run_xroutingdrainage(self, config_file_path):
+    def run_xroutingdrainage(config_file_path):
             #HERE CALL xRoutingClass with the attributes obtained above
             
         xroutingdrainage = xDrainageRouting.AttributeDrainageFluxes(config_file_path)
