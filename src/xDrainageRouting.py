@@ -60,7 +60,9 @@ class AttributeDrainageFluxes :
         self.output_file = self.dir.joinpath('LineicMassDra.csv')
         self.input_dir = Path(self.config.inputDir)
 
-    
+        self.mass_flux_per_field_file = 'Jmass.csv'
+        self.matrix_flux = 'matrix_xAquatics.csv'
+
         self.fields = self.config.fields  
         self.reaches = reaches_names #self.config.reaches 
         self.HML_firstRow = None
@@ -69,13 +71,13 @@ class AttributeDrainageFluxes :
 
     def setup(self):
 
-        fields_flux_time = pd.read_csv(Path(self.config.inputDir.joinpath('Jmass.csv')), sep = ',', skiprows = [1])
+        fields_flux_time = pd.read_csv(Path(self.config.inputDir.joinpath(self.mass_flux_per_field_file)), sep = ',', skiprows = [1])
         self.time = list(fields_flux_time.Time)
         self.fields_flux_data = fields_flux_time.drop('Time', axis = 1)
 
         self.fields_area = self.create_array(dict_field_area,self.fields)
         self.reaches_length = self.create_array(dict_reaches_length, self.reaches)
-        self.matrix_flux = self.load_dataframe_as_array(self.input_dir, 'matrix_xAquatics.csv')
+        self.matrix_flux = self.load_dataframe_as_array(self.input_dir, self.matrix_flux)
     
         self.attribute_fluxes(self.fields_flux_data, 
                               self.matrix_flux, 
@@ -86,7 +88,7 @@ class AttributeDrainageFluxes :
         
     def prepare_mass_flux_table(self) :
 
-        MassFluxLoadingsTable = pd.read_csv(os.path.join(self.generalConfig['inputDir'],'Jmass.csv'),
+        MassFluxLoadingsTable = pd.read_csv(os.path.join(self.generalConfig['inputDir'],self.mass_flux_per_field_file),
                                                      header = [0], parse_dates=[0],infer_datetime_format = True,
                                                      skiprows = self.HML_skipRows)
         if self.HML_nRow is None:
