@@ -189,32 +189,38 @@ class xDrainageRouting(base.Component):
         """
     
         with open(parameter_file, "w") as f:
-                    
-            f.write("\n[pearl]\n")
-            f.write("fieldSelection = {fields_names} \n") # goal is to have self.input.field 
-            f.write("outputVars = MasDraWatLay,MasRnfWatLay\n")
+            f.write("[general]\n")
 
-    def prepare_hydrological_data(self, output_path, fields_file):
-        # Get the field parametrisation from the database
-        # see example with CascadeToxswa.py
-        continue
+            f.write("experimentName = e1\n")
 
-    def prepare_temperature(self, output_file):
-        """
-        Prepares the temperature input for the module.
+            f.write(f"runDirRoot = '..runs/test'\n")
+            f.write(f"inputDir = {processing_path}\n")
+            #f.write(f"fieldFile = {field_file}\n")
+            f.write(f"fields = np.array(['F1','F2','F3','F4'] \n") #self.inputs["DrainageRouting"].describe()["element_names"][1].get_values() 
+            f.write("reaches = np.array(['R601','R602','R603','R604','R605']) \n") 
+            f.write("prlTemplateFile = 'template.prl'\n")
+            f.write("overwrite = false\n")
+            f.write(f"nProcessor = 1") #{self.inputs['NumberWorkers'].read().values}\n")
+ 
 
-        Args:
-            output_file: The path for the input file.
+            #f.write(f"startDateSim = 01-Jan-1995") # = {self.inputs['TimeSeriesStart'].read().values.strftime('%d-%b-%Y')}\n") # to obtain from landscapescenario
 
-        Returns:
-            Nothing.
-        """
+            #f.write(f"endDateSim = 31-Dec-1995") # {end_date_sim}\n") # to obtain from landscapescenario
 
-        # at the moment obtains the end date of the simulation through 
-        # the "MassLoadingSprayDrift" input, do we proceed the same way?
-        # temperature file could be obtained from TOXSWA run? 
-        # Should be the same (or time step different?)
-        # Probably copy structure of funcion in CascadeToxswa.py
+            f.write("\n[xroutingdrainage]\n")
+            f.write("xdrainagerouting_file = xdrainagerouting.csv'\n")
+            f.write("mass_flux_drainage = JMassField.csv'\n")
+            f.write("output_lineic_file = LineicMassDra.csv'\n")
+            f.write("fields_area = '{'F1' : 200,\
+                    'F2' : 200,\
+                    'F3' : 200,\
+                    'F4' : 200}'\n")  #self.inputs["FIELDAREA"].read().values
+            f.write("reaches_length = '{'R601' : 50,\
+                        'R602' : 100,\
+                        'R603' : 25,\
+                        'R604' : 135,\
+                        'R605' : 210}'\n") #self.inputs["REACHESLENGTH"].read().values
+            f.write("outputVars = 'LineicMassDrainage'\n")
 
     def prepare_substance()
         # use function in CascadeToxswa.py
