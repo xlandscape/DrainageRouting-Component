@@ -13,11 +13,14 @@ import datetime
 import numpy as np
 import os
 import base
-from osgeo import ogr
 import attrib
+import xDrainageRouting
+from pathlib import Path
 
+reach_field_matrix_file = "reach_field_matrix.csv"
+drainage_mass_flux_file = "JMass.csv"
 
-class xDrainageRouting(base.Component):
+class xDRAINAGEROUTING_Wraper(base.Component):
     # """A component that encapsulates the xDrainageRouting module for usage within the xAquatics."""
     # """
     # # RELEASES
@@ -148,39 +151,29 @@ class xDrainageRouting(base.Component):
         Returns:
             Nothing.
         """
-        processing_path = self.inputs["ProcessingPath"].read().values
+        processing_path = Path('D:/2_Cascade_toxswa/xDrainageRouting')#self.inputs["ProcessingPath"].read().values
+        reach_field_routing = pd.read_csv(processing_path.joinpath('inputs',reach_field_matrix_file)) #self.inputs["DrainageRouting"].read().values
+        mass_flux_drainage_per_field = pd.read_csv(processing_path.joinpath('inputs',drainage_mass_flux_file))#self.inputs["MATRIX"].read().values
+
         parameterization_file = os.path.join(processing_path, "config.toml")
-        reach_field_matrix_file = "reach_field_matrix.csv"
-
-        self.select_fields(processing_path, os.path.join(processing_path, reach_field_matrix_file))
-        self.run_landscape_pearl(parameterization_file, processing_path)
+        for data, name in zip([reach_field_routing,mass_flux_drainage_per_field],
+                              ['xdrainagerouting.csv','JMassField']):
+            self.create_input_csv(data, name, processing_path)
+     
+        self.run_xroutingdrainage(parameterization_file, processing_path)
         self.read_outputs(os.path.join(processing_path, "experiments", "e1"))
-        self.prepare_parameterization(parameterization_file, processing_path, reach_file, temperature_file,
-                                      substance_file)
-        self.prepare_temperature(os.path.join(processing_path, temperature_file))
 
-        def select_fields(self, matrix_file)
-        """
-        Select the fields to run 
-        Based on data from the system
+    def create_input_csv(self, file, name, processing_path):
+        file.to_csv(processing_path.joinpath('inputs',name))
 
-        """
-
-        # Each field provided must be run, so not additionnal check is necessary 
-        # Importing the matrix not necessary for landscapepearl
-
-        C_import = np.array([[1,0,0,0],[0,1,1,0],[0,0,0,0],[0,0,1,0],[0,0,0,0]])
-        field_names = np.array(['F1','F2','F3','F4'])
-        reaches_names = np.array(['R601','R602','R603','R604','R605'])
-
-    def prepare_parameterization(self, parameter_file, processing_path, reach_file, temperature_file, substance_file):
+    def prepare_parameterization(self, parameter_file, processing_path):
         """
         Prepares the module's parameterization.
 
         Args:
             parameter_file: The path for the parameterization file.
             processing_path: The processing path for the module.
-            reach_file: The path of the reach file.
+            field_file: The path of the field file fields.csv.
             temperature_file: The path of the temperature file.
             substance_file: The path of the substance file.
 
@@ -221,32 +214,12 @@ class xDrainageRouting(base.Component):
                         'R604' : 135,\
                         'R605' : 210}'\n") #self.inputs["REACHESLENGTH"].read().values
             f.write("outputVars = 'LineicMassDrainage'\n")
-
-    def prepare_substance()
-        # use function in CascadeToxswa.py
-        continue 
-
-    def run_landscape_pearl(self, parameterization_file, processing_path):
-        """
-        Runs the module.
-
-        Args:
-            parameterization_file: The path of the parameterization file.
-            processing_path: The processing path of the module.
-
-        Returns:
-            Nothing.
-        """
-        python_exe = os.path.join(os.path.dirname(__file__), "module", "WPy64-3760", "python-3.7.6.amd64",
-                                  "python.exe")
-        # noinspection SpellCheckingInspection
-        python_script = os.path.join(os.path.dirname(__file__), "module", "src", "xDrainageRouting.py")
-        base.run_process(
-            (python_exe, python_script, parameterization_file),
-            processing_path,
-            self.default_observer,
-            {"PATH": ""}
-        )
+            
+    def run_xroutingdrainage(self, config_file_path):
+            #HERE CALL xRoutingClass with the attributes obtained above
+            
+        xroutingdrainage = xDrainageRouting.AttributeDrainageFluxes(config_file_path)
+        xroutingdrainage.setup()
 
     def read_outputs(self, output_path):
         """
@@ -258,28 +231,28 @@ class xDrainageRouting(base.Component):
         Returns:
             Nothing.
         """
-        number_fields = 3 #
-        number_time_steps = 50 #self.inputs["WaterDischarge"].describe()["shape"][0]
-        time_series_start = self.inputs["TimeSeriesStart"].read().values
+        
+        number_time_steps = 365*24 #HOW TO GET NB of TIME STEP BASE ON START AND END DATE
+        time_series_start = self.inputs["SimulationStart"].read().values
 
-        self.outputs["LINEICDRAMASS"].set_values(
+        self.outputs["LineicMassDrainage"].set_values(
             np.ndarray,
-            shape=(number_time_steps, number_reaches),
+            shape=(number_time_steps, len(self.reaches)),
             chunks=(min(65536, number_time_steps), 1),
-            element_names=(None, names_reaches),
+            element_names=(None, reaches),
             offset=(time_series_start, None)
         )
 
-        for i, reach in enumerate(names_reaches):
+        for i, reach in enumerate(reaches):
             lineic_mass_drainage = np.zeros(number_time_steps)
             
-            with open(os.path.join(output_path, f"F{reach}.csv")) as f:
+            with open(os.path.join(output_path, f"LineicMassDra.csv")) as f:
                 f.readline()
                 for t in range(number_time_steps):
                     reaches = f.readline().split(",")
                     lineic_mass_drainage[t] = float(reaches[2])
                   
-            self.outputs["LINEICMASSDRA"].set_values(
+            self.outputs["LineicMassDrainage"].set_values(
                 lineic_mass_drainage, slices=(slice(number_time_steps), i), create=False)
 
 
