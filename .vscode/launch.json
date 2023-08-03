@@ -5,10 +5,19 @@
     "version": "0.2.0",
     "configurations": [
         {
+            "name": "demo_interface",
+            "type": "python",
+            "request": "launch",
+            "program": "xDrainageRouting_interface.py",
+            "console": "integratedTerminal",
+            "cwd" : "${workspaceFolder}",
+            "args": ["input/config.toml"]
+        },
+        {
             "name": "demo",
             "type": "python",
             "request": "launch",
-            "program": "src/xDrainageRouting.py",
+            "program": "xDrainageRouting.py",
             "console": "integratedTerminal",
             "cwd" : "${workspaceFolder}",
             "args": ["input/config.toml"]
