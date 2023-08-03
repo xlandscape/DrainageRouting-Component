@@ -10,6 +10,7 @@ import csv
 import numpy as np
 from pathlib import Path
 import pandas as pd
+import os
 
 C_import = np.array([[1,0,0,0],[0,1,1,0],[0,0,0,0],[0,0,1,0],[0,0,0,0]])
 field_names = np.array(['F1','F2','F3','F4'])
