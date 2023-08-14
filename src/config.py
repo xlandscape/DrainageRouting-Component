@@ -23,6 +23,8 @@ class Config_general(NamedTuple):
     prlTemplateFile: Path
     nProcessor: int
     overwrite: bool
+    fields : list
+    reaches : list
 
 class Config_xroutingdrainage():
     xdrainagerouting_file : Path
