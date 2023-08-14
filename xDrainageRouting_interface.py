@@ -201,16 +201,12 @@ class xDRAINAGEROUTING_Wraper:
 
         self.prepare_parameterization(parameterization_file, processing_path, reaches_file, fields_file, drainage_routing_file)
        # self.read_outputs(os.path.join(processing_path, "experiments", "e1"))
-        self.prepare_fields_input(processing_path,  field_area, mass_flux_drainage_per_field)
 
 
     def create_input_csv(self, file, name, processing_path):
         file.to_csv(processing_path.joinpath('input', name))
 
-    def prepare_fields_input(self,processing_path,  field_area,mass_flux_drainage_per_field):
-        fields_info =  {**field_area,**mass_flux_drainage_per_field}
-        fields_info.to_csv(processing_path.joinpath('input', 'Fields.csv'), columns = ['field_area_m2', 'field_mass_flux_g_per_m2_h1'])
-       
+
 
     def prepare_parameterization(self, parameter_file, processing_path, reaches_file, fields_file, drainage_routing_file, output_file):
         """
