@@ -21,9 +21,6 @@ class Config_general(NamedTuple):
     runDirRoot: Path
     inputDir: Path
     prlTemplateFile: Path
-    fields: list
-    fields_file : Path
-    reaches_file : Path
     nProcessor: int
     overwrite: bool
 
@@ -31,7 +28,9 @@ class Config_xroutingdrainage():
     xdrainagerouting_file : Path
     output_lineic_file : Path
     outputVars : str
-
+    fieldsAreaFile : Path
+    fieldsMassFluxFile : Path
+    reachesLengthFile : Path
 
 class Config_pearl(NamedTuple):
     """pearl section"""
