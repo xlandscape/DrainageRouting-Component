@@ -190,9 +190,11 @@ class xDRAINAGEROUTING_Wraper:
         """
         for data, name in zip([reach_field_routing], ['xdrainagerouting.csv']):
             self.create_input_csv(data, name, processing_path)
-     
-        self.prepare_parameterization(parameterization_file, processing_path)
+
+
+        self.prepare_parameterization(parameterization_file, processing_path, reaches_file, fields_file, drainage_routing_file)
        # self.read_outputs(os.path.join(processing_path, "experiments", "e1"))
+        self.prepare_fields_input(processing_path,  field_area, mass_flux_drainage_per_field)
 
 
     def create_input_csv(self, file, name, processing_path):
@@ -221,37 +223,24 @@ class xDRAINAGEROUTING_Wraper:
     
         with open(parameter_file, "w") as f:
             f.write("[general]\n")
-
             f.write("experimentName = e1\n")
-
             f.write(f"runDirRoot = '..runs/test'\n")
             f.write(f"inputDir = {processing_path}\n")
             f.write(f"fieldsFile = Path({fields_file}\n")
             f.write(f"reachesFile = Path({reaches_file}\n") 
             f.write("overwrite = false\n")
             f.write(f"nProcessor = 1") #{self.inputs['NumberWorkers'].read().values}\n")
- 
 
             #f.write(f"startDateSim = 01-Jan-1995") # = {self.inputs['TimeSeriesStart'].read().values.strftime('%d-%b-%Y')}\n") # to obtain from landscapescenario
-
             #f.write(f"endDateSim = 31-Dec-1995") # {end_date_sim}\n") # to obtain from landscapescenario
 
             f.write("\n[xroutingdrainage]\n")
-            f.write("xdrainagerouting_file = 'xdrainagerouting.csv'\n")
-            f.write("mass_flux_drainage = 'JMassField.csv'\n")
-            f.write("output_lineic_file = 'LineicMassDra.csv'\n")
-            f.write("fields_area = {'F1' : 200,\
-                    'F2' : 200,\
-                    'F3' : 200,\
-                    'F4' : 200}\n")  #self.inputs["FIELDAREA"].read().values
-            f.write("reaches_length = {'R601' : 50,\
-                        'R602' : 100,\
-                        'R603' : 25,\
-                        'R604' : 135,\
-                        'R605' : 210}\n") #self.inputs["REACHESLENGTH"].read().values
-            f.write("outputVars = 'LineicMassDrainage'\n")
-            
-    def run_xroutingdrainage(config_file_path):
+            f.write(f"xdrainagerouting_file = {drainage_routing_file}\n") # nR*nF matrix
+            f.write(f"output_lineic_file = {output_file}\n")
+            f.write("outputVars = 'LineicMassLoadingDrainage'\n")
+
+
+    def run_xroutingdrainage(config_file_path, parameterization_file, processing_path):
         """
         Runs the module.
 
@@ -267,7 +256,9 @@ class xDRAINAGEROUTING_Wraper:
         # noinspection SpellCheckingInspection
         python_script = os.path.join(os.path.dirname(__file__), "module", "src", "xDrainageRouting.py")
         base.run_process(
-            (python_exe, python_script, parameterization_file),
+            (python_exe, 
+             python_script, 
+             parameterization_file),
             processing_path,
             self.default_observer,
             {"PATH": ""}
