@@ -157,30 +157,63 @@ class xDRAINAGEROUTING_Wraper:
         """
 
         processing_path = Path('D:/2_Cascade_toxswa/xdrainagerouting-xaquatics')#self.inputs["ProcessingPath"].read().values
-        reach_field_routing = pd.read_csv(processing_path.joinpath('input',reach_field_matrix_file)) #self.inputs["DrainageRouting"].read().values
-        mass_flux_drainage_per_field = pd.read_csv(processing_path.joinpath('input',drainage_mass_flux_file))#self.inputs["MATRIX"].read().values
 
+        reaches_file = processing_path.joinpath('Reaches.csv')
+        fields_file = processing_path.joinpath('Fields.csv')
+        drainage_routing_file = processing_path.joinpath('xdrainagerouting.csv')
+
+        output_file = processing_path.joinpath('LineicMassDra.csv')
         parameterization_file = os.path.join(processing_path, "config.toml")
-        for data, name in zip([reach_field_routing,mass_flux_drainage_per_field],
-                              ['xdrainagerouting.csv','JMassField']):
+
+        reach_field_routing = pd.read_csv(processing_path.joinpath('input',reach_field_matrix_file)) #self.inputs["DrainageRouting"].read().values
+        """
+        Below : section with data provided until the database can be used.
+        to replace with the input
+        """
+        reaches_length = {'R601' : 50,
+                        'R602' : 100,
+                        'R603' : 25,
+                        'R604' : 135,
+                        'R605' : 210} #self.inputs["DrainageRouting"].read().values
+        mass_flux_drainage_per_field = {'F1' : 0.8,
+            'F2' : 10,
+            'F3' : 0.1,
+            'F4' : 2.3} #self.inputs["MATRIX"].read().values
+        field_area = {'F1' : 200,
+                    'F2' : 200,
+                    'F3' : 200,
+                    'F4' : 200} #self.inputs["FIELDAREA"].read().values
+        reaches_length.to_csv(processing_path.joinpath('input', 'Reaches.csv'), columns = ['reach_length_m'])
+        """
+        above : section with data provided until the database can be used.
+        to replace with the input
+        """
+        for data, name in zip([reach_field_routing], ['xdrainagerouting.csv']):
             self.create_input_csv(data, name, processing_path)
      
         self.prepare_parameterization(parameterization_file, processing_path)
        # self.read_outputs(os.path.join(processing_path, "experiments", "e1"))
 
+
     def create_input_csv(self, file, name, processing_path):
         file.to_csv(processing_path.joinpath('input', name))
 
-    def prepare_parameterization(self, parameter_file, processing_path):
+    def prepare_fields_input(self,processing_path,  field_area,mass_flux_drainage_per_field):
+        fields_info =  {**field_area,**mass_flux_drainage_per_field}
+        fields_info.to_csv(processing_path.joinpath('input', 'Fields.csv'), columns = ['field_area_m2', 'field_mass_flux_g_per_m2_h1'])
+       
+
+    def prepare_parameterization(self, parameter_file, processing_path, reaches_file, fields_file, drainage_routing_file, output_file):
         """
         Prepares the module's parameterization.
 
         Args:
             parameter_file: The path for the parameterization file.
             processing_path: The processing path for the module.
-            field_file: The path of the field file fields.csv.
-            temperature_file: The path of the temperature file.
-            substance_file: The path of the substance file.
+            reaches_file: The path of the reach file reaches.csv.
+            fields_file: The path of the field file fields.csv.
+            drainage_routing_file : The path to the xdrainagerouting.csv.
+            output_file : the path to the LineicMassDra.csv 
 
         Returns:
             Nothing.
@@ -193,9 +226,8 @@ class xDRAINAGEROUTING_Wraper:
 
             f.write(f"runDirRoot = '..runs/test'\n")
             f.write(f"inputDir = {processing_path}\n")
-            #f.write(f"fieldFile = {field_file}\n")
-            f.write("fields = np.array(['F1','F2','F3','F4'] \n") #self.inputs["DrainageRouting"].describe()["element_names"][1].get_values() 
-            f.write("reaches = np.array(['R601','R602','R603','R604','R605']) \n") 
+            f.write(f"fieldsFile = Path({fields_file}\n")
+            f.write(f"reachesFile = Path({reaches_file}\n") 
             f.write("overwrite = false\n")
             f.write(f"nProcessor = 1") #{self.inputs['NumberWorkers'].read().values}\n")
  
