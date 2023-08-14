@@ -183,12 +183,19 @@ class xDRAINAGEROUTING_Wraper:
                     'F2' : 200,
                     'F3' : 200,
                     'F4' : 200} #self.inputs["FIELDAREA"].read().values
-        reaches_length.to_csv(processing_path.joinpath('input', 'Reaches.csv'), columns = ['reach_length_m'])
+      
         """
         above : section with data provided until the database can be used.
         to replace with the input
         """
-        for data, name in zip([reach_field_routing], ['xdrainagerouting.csv']):
+        for data, name in zip([reach_field_routing,
+                               field_area,
+                               mass_flux_drainage_per_field,
+                               reaches_length], 
+                               ['xdrainagerouting.csv',
+                                'fields.csv',
+                                'mass_flux_drainage_field.csv',
+                                'Reaches.csv'  ]):
             self.create_input_csv(data, name, processing_path)
 
 
