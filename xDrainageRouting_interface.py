@@ -1,8 +1,3 @@
-"""
-Obtain matrix field/reach, 
-reaches Length 
-fields area
-fields fluxes
 
 Output to system
 flux to reach per reach length
@@ -19,8 +14,6 @@ from pathlib import Path
 import pandas as pd
 import sys
 
-reach_field_matrix_file = "matrix_xAquatics.csv"
-drainage_mass_flux_file = "JMass.csv"
 
 def main(config_file_path: Path) -> None:
     """Entry point
@@ -33,8 +26,8 @@ def main(config_file_path: Path) -> None:
     #xroutingdrainage.postprocess()
 
 class xDRAINAGEROUTING_Wraper:
-    # """A component that encapsulates the xDrainageRouting module for usage within the xAquatics."""
-    # """
+    """A component that encapsulates the xDrainageRouting module for usage within the xAquatics."""
+   
     # # RELEASES
     # VERSION = base.VersionCollection(
     #     base.VersionInfo("1.1.1", "2023-07-27")
@@ -60,103 +53,103 @@ class xDRAINAGEROUTING_Wraper:
     # # CHANGELOG
     # #below : changelog template
     # #VERSION.added("1.2.20", "components.CascadeToxswa component")
-    
+
     def __init__(self, config_file_path: Path):
         reach_field_matrix_file = "matrix_xAquatics.csv"
         drainage_mass_flux_file = "JMass.csv"
-    #     """
-    #     Initializes the LandscapePEARL component.
+        """
+        Initializes the LandscapePEARL component.
 
-    #     Args:
-    #         name: The name of the component.
-    #         observer: The default observer used by the component.
-    #         store: The data store used by the component.
-    #     """
-    #     super(LandscapePEARL, self).__init__(name, observer, store)
-    #     self._module = base.Module("") #NAME MODULE
-    #     self._inputs = base.InputContainer(self,[ 
-    #        base.Input(
-    #             "ProcessingPath",
-    #             (attrib.Class(str, 1), attrib.Unit(None, 1), attrib.Scales("global", 1)),
-    #             self.default_observer,
-    #             description="""The working directory for the module. It is used for all files prepared as module inputs
-    #             or generated as module outputs."""
-    #         ),        
-    #        base.Input(
-    #             "TimeSeriesStart",
-    #             (attrib.Class(datetime.date, 1), attrib.Unit(None, 1), attrib.Scales("global", 1)),
-    #             self.default_observer,
-    #             description="""The first time step for which input data is provided. 
-    #             This is also the time step of where
-    #             the CascadeToxswa simulation starts."""
-    #         ),
+        Args:
+            name: The name of the component.
+            observer: The default observer used by the component.
+            store: The data store used by the component.
+        """
+        super(LandscapePEARL, self).__init__(name, observer, store)
+        self._module = base.Module("") #NAME MODULE
+        self._inputs = base.InputContainer(self,[ 
+           base.Input(
+                "ProcessingPath",
+                (attrib.Class(str, 1), attrib.Unit(None, 1), attrib.Scales("global", 1)),
+                self.default_observer,
+                description="""The working directory for the module. It is used for all files prepared as module inputs
+                or generated as module outputs."""
+            ),        
+           base.Input(
+                "TimeSeriesStart",
+                (attrib.Class(datetime.date, 1), attrib.Unit(None, 1), attrib.Scales("global", 1)),
+                self.default_observer,
+                description="""The first time step for which input data is provided. 
+                This is also the time step of where
+                the CascadeToxswa simulation starts."""
+            ),
             
-    #         base.Input(
-    #             "SimulationStart",
-    #             (attrib.Class(datetime.date, 1), attrib.Unit(None, 1), attrib.Scales("global", 1)),
-    #             self.default_observer,
-    #             description="""First date that is simulated"""
-    #         ),
+            base.Input(
+                "SimulationStart",
+                (attrib.Class(datetime.date, 1), attrib.Unit(None, 1), attrib.Scales("global", 1)),
+                self.default_observer,
+                description="""First date that is simulated"""
+            ),
             
-    #         base.Input(
-    #             "SimulationEnd",
-    #             (attrib.Class(datetime.date, 1), attrib.Unit(None, 1), attrib.Scales("global", 1)),
-    #             self.default_observer,
-    #             description="""Last date that is simulated"""
-    #         ),
-    #                     base.Input(
-    #             "MasDraWatLay",
-    #             (attrib.Class(datetime.date, 1), 
-    #             attrib.Unit(None, 1), 
-    #             attrib.Scales("time/hour, space/base_geometry", 1)),
-    #             self.default_observer,
-    #             description="""Mass flux per square meter of field at a specified moment in time."""
-    #         ),
-    #                     base.Input(
-    #             "DrainageRouting",
-    #             (attrib.Class(datetime.date, 1), attrib.Unit(None, 1), 
-    #             attrib.Scales("reach, space/base_geometry", 1)),
-    #             self.default_observer,
-    #             description=""" """
-    #         ),
-    #                     base.Input(
-    #             "REACHLENGTH",
-    #             (attrib.Class(datetime.date, 1), attrib.Unit('m', 1), 
-    #             attrib.Scales("reach", 1)),
-    #             self.default_observer,
-    #             description="""Length of the reaches"""
-    #         ),
-    #                     base.Input(
-    #             "FIELDAREA",
-    #             (attrib.Class(datetime.date, 1), attrib.Unit('m2', 1), 
-    #             attrib.Scales("space/base_geometry", 1)),
-    #             self.default_observer,
-    #             description="""Area of the fields"""
-    #         ),
-    #     ])
-    #     self._outputs = base.OutputContainer(
-    #         self,
-    #         (
-    #             base.Output(
-    #                 "LineicMassDrainage",
-    #                 store,
-    #                 self,
-    #                 {"data_type": np.float, "scales": "time/hour, space/base_geometry", "unit": "g/m2/h"},
-    #                 "Mass flux per meter of reach resulting from the drainage of nearby fields at a specified\
-    #                  moment in time. Whether a field is drained to a reach is an information provided in the \
-    #                  landscape scenario component. The drained mass flux for each field (in g/m2/h) is calculated in the \
-    #                  landscape drainage component.",
-    #                 {
-    #                     "type": np.ndarray,
-    #                     "shape": (
-    #                         "the number of time steps as given by the input", # which input?
-    #                         "the number of reaches as given by the `Reaches` input"
-    #                     ),
-    #                     "chunks": "for fast retrieval of time series"
-    #                 }
-    #             )
+            base.Input(
+                "SimulationEnd",
+                (attrib.Class(datetime.date, 1), attrib.Unit(None, 1), attrib.Scales("global", 1)),
+                self.default_observer,
+                description="""Last date that is simulated"""
+            ),
+                        base.Input(
+                "MasDraWatLay",
+                (attrib.Class(datetime.date, 1), 
+                attrib.Unit(None, 1), 
+                attrib.Scales("time/hour, space/base_geometry", 1)),
+                self.default_observer,
+                description="""Mass flux per square meter of field at a specified moment in time."""
+            ),
+                        base.Input(
+                "DrainageRouting",
+                (attrib.Class(datetime.date, 1), attrib.Unit(None, 1), 
+                attrib.Scales("reach, space/base_geometry", 1)),
+                self.default_observer,
+                description=""" """
+            ),
+                        base.Input(
+                "REACHLENGTH",
+                (attrib.Class(datetime.date, 1), attrib.Unit('m', 1), 
+                attrib.Scales("reach", 1)),
+                self.default_observer,
+                description="""Length of the reaches"""
+            ),
+                        base.Input(
+                "FIELDAREA",
+                (attrib.Class(datetime.date, 1), attrib.Unit('m2', 1), 
+                attrib.Scales("space/base_geometry", 1)),
+                self.default_observer,
+                description="""Area of the fields"""
+            ),
+        ])
+        self._outputs = base.OutputContainer(
+            self,
+            (
+                base.Output(
+                    "LineicMassDrainage",
+                    store,
+                    self,
+                    {"data_type": np.float, "scales": "time/hour, space/base_geometry", "unit": "g/m2/h"},
+                    "Mass flux per meter of reach resulting from the drainage of nearby fields at a specified\
+                     moment in time. Whether a field is drained to a reach is an information provided in the \
+                     landscape scenario component. The drained mass flux for each field (in g/m2/h) is calculated in the \
+                     landscape drainage component.",
+                    {
+                        "type": np.ndarray,
+                        "shape": (
+                            "the number of time steps as given by the input", # which input?
+                            "the number of reaches as given by the `Reaches` input"
+                        ),
+                        "chunks": "for fast retrieval of time series"
+                    }
+                )
                 
-    #         ))
+            ))
         
     def run(self):
         """
