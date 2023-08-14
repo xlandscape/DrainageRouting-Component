@@ -1,9 +1,5 @@
 
-Output to system
-flux to reach per reach length
-"""
-
-"""Component that encapsulates the CascadeToxswa module."""
+"""Component that encapsulates the xDrainageRouting module."""
 import datetime
 import numpy as np
 import os
@@ -54,6 +50,7 @@ class xDRAINAGEROUTING_Wraper:
     # #below : changelog template
     # #VERSION.added("1.2.20", "components.CascadeToxswa component")
 
+     
     def __init__(self, config_file_path: Path):
         reach_field_matrix_file = "matrix_xAquatics.csv"
         drainage_mass_flux_file = "JMass.csv"
@@ -158,6 +155,7 @@ class xDRAINAGEROUTING_Wraper:
         Returns:
             Nothing.
         """
+
         processing_path = Path('D:/2_Cascade_toxswa/xdrainagerouting-xaquatics')#self.inputs["ProcessingPath"].read().values
         reach_field_routing = pd.read_csv(processing_path.joinpath('input',reach_field_matrix_file)) #self.inputs["DrainageRouting"].read().values
         mass_flux_drainage_per_field = pd.read_csv(processing_path.joinpath('input',drainage_mass_flux_file))#self.inputs["MATRIX"].read().values
