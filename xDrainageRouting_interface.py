@@ -165,7 +165,7 @@ class xDRAINAGEROUTING_Wraper:
         output_file = processing_path.joinpath('LineicMassDra.csv')
         parameterization_file = os.path.join(processing_path, "config.toml")
 
-        reach_field_routing = pd.read_csv(processing_path.joinpath('input',reach_field_matrix_file)) #self.inputs["DrainageRouting"].read().values
+        drainage_routing_file = pd.read_csv(processing_path.joinpath('input',reach_field_matrix_file)) #self.inputs["DrainageRouting"].read().values
         """
         Below : section with data provided until the database can be used.
         to replace with the input
@@ -179,7 +179,7 @@ class xDRAINAGEROUTING_Wraper:
             'F2' : 10,
             'F3' : 0.1,
             'F4' : 2.3} #self.inputs["MATRIX"].read().values
-        field_area = {'F1' : 200,
+        fields_area = {'F1' : 200,
                     'F2' : 200,
                     'F3' : 200,
                     'F4' : 200} #self.inputs["FIELDAREA"].read().values
@@ -188,18 +188,18 @@ class xDRAINAGEROUTING_Wraper:
         above : section with data provided until the database can be used.
         to replace with the input
         """
-        for data, name in zip([reach_field_routing,
-                               field_area,
+        for data, name in zip([drainage_routing_file,
+                               fields_area,
                                mass_flux_drainage_per_field,
                                reaches_length], 
                                ['xdrainagerouting.csv',
-                                'fields.csv',
+                                'fields_area.csv',
                                 'mass_flux_drainage_field.csv',
-                                'Reaches.csv'  ]):
+                                'reaches_length.csv']):
             self.create_input_csv(data, name, processing_path)
 
 
-        self.prepare_parameterization(parameterization_file, processing_path, reaches_file, fields_file, drainage_routing_file)
+        self.prepare_parameterization(parameterization_file, processing_path,  fields_area, reaches_length, mass_flux_drainage_per_field, drainage_routing_file)
        # self.read_outputs(os.path.join(processing_path, "experiments", "e1"))
 
 
@@ -208,15 +208,16 @@ class xDRAINAGEROUTING_Wraper:
 
 
 
-    def prepare_parameterization(self, parameter_file, processing_path, reaches_file, fields_file, drainage_routing_file, output_file):
+    def prepare_parameterization(self, parameter_file, processing_path, fields_area, reaches_length, mass_flux_drainage_per_field, drainage_routing_file, output_file):
         """
         Prepares the module's parameterization.
 
         Args:
             parameter_file: The path for the parameterization file.
             processing_path: The processing path for the module.
-            reaches_file: The path of the reach file reaches.csv.
-            fields_file: The path of the field file fields.csv.
+            reacheslength_file: The path of the reach file reaches_lengths.csv.
+            fieldsarea_file: The path of the field file fields_area.csv.
+            fieldsarea_file: The path of the field file fields_area.csv.
             drainage_routing_file : The path to the xdrainagerouting.csv.
             output_file : the path to the LineicMassDra.csv 
 
@@ -229,8 +230,7 @@ class xDRAINAGEROUTING_Wraper:
             f.write("experimentName = e1\n")
             f.write(f"runDirRoot = '..runs/test'\n")
             f.write(f"inputDir = {processing_path}\n")
-            f.write(f"fieldsFile = Path({fields_file}\n")
-            f.write(f"reachesFile = Path({reaches_file}\n") 
+ 
             f.write("overwrite = false\n")
             f.write(f"nProcessor = 1") #{self.inputs['NumberWorkers'].read().values}\n")
 
@@ -241,7 +241,9 @@ class xDRAINAGEROUTING_Wraper:
             f.write(f"xdrainagerouting_file = {drainage_routing_file}\n") # nR*nF matrix
             f.write(f"output_lineic_file = {output_file}\n")
             f.write("outputVars = 'LineicMassLoadingDrainage'\n")
-
+            f.write(f"fieldsAreaFile = Path({fields_area}\n")
+            f.write(f"fieldsMassFluxFile = Path({mass_flux_drainage_per_field}\n")
+            f.write(f"reachesLengthFile = Path({reaches_length}\n")
 
     def run_xroutingdrainage(config_file_path, parameterization_file, processing_path):
         """
