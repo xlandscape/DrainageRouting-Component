@@ -158,8 +158,6 @@ class xDRAINAGEROUTING_Wraper:
 
         processing_path = Path('D:/2_Cascade_toxswa/xdrainagerouting-xaquatics')#self.inputs["ProcessingPath"].read().values
 
-        reaches_file = processing_path.joinpath('Reaches.csv')
-        fields_file = processing_path.joinpath('Fields.csv')
         drainage_routing_file = processing_path.joinpath('xdrainagerouting.csv')
 
         output_file = processing_path.joinpath('LineicMassDra.csv')
@@ -230,7 +228,8 @@ class xDRAINAGEROUTING_Wraper:
             f.write("experimentName = e1\n")
             f.write(f"runDirRoot = '..runs/test'\n")
             f.write(f"inputDir = {processing_path}\n")
- 
+            f.write(f"fields = np.array(['F1','F2','F3','F4']\n")  # to obtain from xdrainagerouting metadata
+            f.write(f"reaches= np.array(['R601','R602','R603','R604','R605']) \n")  # to obtain from xdrainagerouting metadata
             f.write("overwrite = false\n")
             f.write(f"nProcessor = 1") #{self.inputs['NumberWorkers'].read().values}\n")
 
