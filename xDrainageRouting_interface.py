@@ -201,7 +201,15 @@ class xDRAINAGEROUTING_Wraper:
         reaches_length.to_csv(processing_path.joinpath('input', output_file_name),sep=',', columns = ['Reach','length_m'])
 
     def prepare_mass_flux_drainage_per_field(self, processing_path, mass_flux_drainage_per_field, output_file_name):
-        mass_flux_drainage_per_field.to_csv(processing_path.joinpath('input', output_file_name),sep=',', columns = ['Field','Mass_drainage_g_m2'])
+        column_names = ['F1','F2','F3','F4'] #self.metadatadrainage
+        output_file = processing_path.joinpath('input', output_file_name)
+        with open(output_file, "w") as f:
+        f.write("Time,LISTFIELDS\n")
+        f.write("-, len(listfields)*[g/m2]\n")
+        for mass in mass_flux_drainage_per_field:
+                #f.write(f"{(time_series_start + datetime.timedelta(i)).strftime('%d-%b-%Y')},")
+                f.write(f"{mass}\n")
+        mass_flux_drainage_per_field.to_csv(processing_path.joinpath('input', output_file_name),sep=',', columns = ['Field'] + )
 
     def prepare_xdrainagerouting(self, processing_path, drainage_routing_file, output_file_name):
         drainage_routing_file.to_csv(processing_path.joinpath('input', output_file_name), sep=',')
