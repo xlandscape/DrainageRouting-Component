@@ -10,33 +10,6 @@ import numpy as np, datetime as dt, pandas as pd
 from pathlib import Path
 import os
 
-
-C_import = np.array([[1,0,0,0],[0,1,1,0],[0,0,0,0],[0,0,1,0],[0,0,0,0]])
-field_names = np.array(['F1','F2','F3','F4'])
-reaches_names = np.array(['R601','R602','R603','R604','R605'])
-"""
-the fields area will be obtained from the system (unit : m2)
-"""
-dict_field_area = {'F1' : 200,
-                    'F2' : 200,
-                    'F3' : 200,
-                    'F4' : 200}
-
-
-dict_J_g_per_m2_h1 = {'F1' : 0.8,
-            'F2' : 10,
-            'F3' : 0.1,
-            'F4' : 2.3}
-"""
-the reaches length will be obtained from the system (unit : m)
-"""
-dict_reaches_length = {'R601' : 50,
-                        'R602' : 100,
-                        'R603' : 25,
-                        'R604' : 135,
-                        'R605' : 210}
-
-
 def main(config_file_path: Path) -> None:
     """Entry point
 
@@ -80,13 +53,14 @@ class AttributeDrainageFluxes :
 
         self.xdrainagerouting = self.load_dataframe_as_array(self.input_dir, self.xdrainagerouting)
     
-        self.attribute_fluxes(self.fields_flux_data, 
-                              self.xdrainagerouting, 
-                              self.fields_area, 
-                              self.reaches_length, 
-                              self.reaches, 
-                              self.time)
-        
+        self.lineicmassdra_file = self.attribute_fluxes_file(self.fields_flux_data, 
+                                                   self.xdrainagerouting, 
+                                                   self.fields_area, 
+                                                   self.reaches_length, 
+                                                   self.reaches, 
+                                                   self.time)
+
+
     def prepare_mass_flux_table(self) :
 
         MassFluxLoadingsTable = pd.read_csv(os.path.join(self.generalConfig['inputDir'],self.mass_flux_per_field_file),
@@ -105,12 +79,14 @@ class AttributeDrainageFluxes :
     #def get_time(self, path):
         
     def load_dataframe_as_array(self, input_dir : Path, file : str):
-        """returns the matrix as an array"""
+        """returns the matrix as an array with no columns or index names
+           
+        """
         df = pd.read_csv(Path(input_dir.joinpath(file)), sep = ',')
         df = df.drop(df.columns[0], axis=1).to_numpy()
         return df
     
-    def attribute_fluxes(self, 
+    def attribute_fluxes_file(self, 
                          fields_flux, 
                          matrix_flux, 
                          fields_area, 
@@ -120,15 +96,20 @@ class AttributeDrainageFluxes :
         """returns the fluxes per reach per meter """
 
         df = pd.DataFrame(columns = reaches_names)
+
         for i in np.arange(len(time)) :
-            flux_per_reach = np.matmul(matrix_flux, np.multiply(list(fields_flux.iloc[i]), fields_area ))
-            lineic_flux_per_reach = np.divide(flux_per_reach, reaches_length )
-            df = pd.concat([df,pd.DataFrame(data = [lineic_flux_per_reach], columns = reaches_names)])
+            flux_per_reach = np.matmul(matrix_flux, np.multiply(list(fields_flux.iloc[i]), list(fields_area['area_m2'] )))
+            lineic_flux_per_reach = np.divide(flux_per_reach, list(reaches_length['length_m']) )
+            df = pd.concat([df,pd.DataFrame(data = [lineic_flux_per_reach], columns = reaches_names)]) # how are reaches_names obtained HAS to be the name of the columns of this input
         df.index = np.arange(len(time))
         time_df = pd.DataFrame(data = time)
-        lineicmassdra = pd.concat([time_df, df], axis = 1)
-        lineicmassdra.to_csv(self.output_file, index = False)
-    
+        lineicmassdra = pd.concat([time_df, df], axis = 1).set_index(0)
+
+        with open(self.output_file, "w") as f:
+            f.write(f"Time,LISTREACHES\n")
+            f.write("-, len(listreachess)*[g/m/h]\n")
+            f.write(lineicmassdra .to_string(index_names = False, header = False))
+            
     def create_array(self, dict, list):
         """returns an array of values for a given dictionnary and list """
         return [dict[element] for element in list]
