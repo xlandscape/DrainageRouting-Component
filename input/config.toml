@@ -4,22 +4,11 @@
   overwrite = false
   fields = ['F1','F2','F3','F4']
   nProcessor = 1
-
+  reaches = ['R601','R602','R603','R604','R605']
 [xroutingdrainage]
-  inputDirMeteo = '${general.inputDir}/Meteo'
-  pearlBinary = '${general.inputDir}/Exe/pearlmodel.exe'
-  reaches = np.array(['R601','R602','R603','R604','R605'])
-  fields = np.array(['F1','F2','F3','F4'])
-  fields_area = {'F1' : 200, 'F2' : 200,\
-                    'F3' : 200,\
-                    'F4' : 200}
-  reaches_length = {'R601' : 50,\
-                        'R602' : 100,\
-                        'R603' : 25,\
-                        'R604' : 135,\
-                        'R605' : 210}
-
-  outputVars = 'LineicMassDrainage'
-  mass_flux_drainage = 'JMassField.csv'
-  output_lineic_file = 'LineicMassDra.csv'
-  xdrainagerouting_file = 'xdrainagerouting.csv'
+  outputVars = '/LineicMassDrainage'
+  output_lineic_file = '${general.inputDir}/LineicMassDra.csv'
+  xdrainagerouting_file = '${general.inputDir}/xdrainagerouting.csv'
+  fieldsAreaFile = '${general.inputDir}/fields_area.csv'
+  fieldsMassFluxFile  = '${general.inputDir}/input/Jmass.csv'
+  reachesLengthFile = '${general.inputDir}/input/reaches_length.csv'
