@@ -12,21 +12,19 @@ class ConfigRoot(NamedTuple):
     """Root config class; specifies the sections"""
 
     general: "Config_general"
-    pearl: "Config_pearl"
-
+    xroutingdrainage: "Config_xroutingdrainage"
 
 class Config_general(NamedTuple):
     """General section"""
 
     runDirRoot: Path
     inputDir: Path
-    prlTemplateFile: Path
     nProcessor: int
     overwrite: bool
     fields : list
     reaches : list
 
-class Config_xroutingdrainage():
+class Config_xroutingdrainage(NamedTuple):
     xdrainagerouting_file : Path
     output_lineic_file : Path
     outputVars : str
