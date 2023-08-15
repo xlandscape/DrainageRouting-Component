@@ -62,7 +62,7 @@ class AttributeDrainageFluxes :
         self.input_dir = Path(self.config.inputDir)
 
         self.mass_flux_per_field_file = 'Jmass.csv' #self.config.fieldsMassFluxFile
-        self.matrix_flux = 'matrix_xAquatics.csv'  #self.config.xdrainagerouting_file
+        self.xdrainagerouting = 'matrix_xAquatics.csv'  #self.config.xdrainagerouting_file
 
         self.fields_area_file = 'fields_area.csv' #self.config.fieldsAreaFile
         self.reaches_lengths_file = 'reaches_length.csv'#self.config.reachesLengthFile
@@ -78,13 +78,13 @@ class AttributeDrainageFluxes :
         fields_flux_time = pd.read_csv(Path(self.config.inputDir.joinpath(self.mass_flux_per_field_file)), sep = ',', skiprows = [1])
         self.time = list(fields_flux_time.Time)
         self.fields_flux_data = fields_flux_time.drop('Time', axis = 1)
-        self.fields_area = pd.read_csv(Path(self.config.inputDir.joinpath(self.fields_area_file)), sep = ',', skiprows = [1])
-        self.reaches_length = pd.read_csv(Path(self.config.inputDir.joinpath(self.reaches_lengths_file)), sep = ',', skiprows = [1])
+        self.fields_area = pd.read_csv(Path(self.config.inputDir.joinpath(self.fields_area_file)), sep = ',')
+        self.reaches_length = pd.read_csv(Path(self.config.inputDir.joinpath(self.reaches_lengths_file)), sep = ',')
 
         self.xdrainagerouting = self.load_dataframe_as_array(self.input_dir, self.xdrainagerouting)
     
         self.attribute_fluxes(self.fields_flux_data, 
-                              self.matrix_flux, 
+                              self.xdrainagerouting, 
                               self.fields_area, 
                               self.reaches_length, 
                               self.reaches, 
