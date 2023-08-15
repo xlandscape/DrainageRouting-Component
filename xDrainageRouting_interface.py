@@ -162,8 +162,7 @@ class xDRAINAGEROUTING_Wraper:
 
         output_file = processing_path.joinpath('LineicMassDra.csv')
         parameterization_file = os.path.join(processing_path, "config.toml")
-
-        drainage_routing_file = pd.read_csv(processing_path.joinpath('input',reach_field_matrix_file)) #self.inputs["DrainageRouting"].read().values
+        drainage_routing = pd.read_csv(processing_path.joinpath('input', 'matrix_xAquatics.csv')) #self.inputs["DrainageRouting"].read().values
         """
         Below : section with data provided until the database can be used.
         to replace with the input
@@ -186,25 +185,26 @@ class xDRAINAGEROUTING_Wraper:
         above : section with data provided until the database can be used.
         to replace with the input
         """
-        for data, name in zip([drainage_routing_file,
-                               fields_area,
-                               mass_flux_drainage_per_field,
-                               reaches_length], 
-                               ['xdrainagerouting.csv',
-                                'fields_area.csv',
-                                'mass_flux_drainage_field.csv',
-                                'reaches_length.csv']):
-            self.create_input_csv(data, name, processing_path)
 
-
+        self.prepare_field_area(processing_path, fields_area, 'fields_area.csv')
+        self.prepare_mass_flux_drainage_per_field(processing_path, mass_flux_drainage_per_field, 'mass_flux_drainage_field.csv')
+        self.prepare_reaches_length(processing_path, reaches_length,'reaches_length.csv')
+        self.prepare_xdrainagerouting(processing_path, drainage_routing,'xdrainagerouting.csv')
+    
         self.prepare_parameterization(parameterization_file, processing_path,  fields_area, reaches_length, mass_flux_drainage_per_field, drainage_routing_file)
        # self.read_outputs(os.path.join(processing_path, "experiments", "e1"))
 
+    def prepare_field_area(self, processing_path, field_area_file, output_file_name):
+        field_area_file.to_csv(processing_path.joinpath('input', output_file_name),sep=',', columns = ['Field','Area_m2'])
 
-    def create_input_csv(self, file, name, processing_path):
-        file.to_csv(processing_path.joinpath('input', name))
+    def prepare_reaches_length(self, processing_path, reaches_length, output_file_name):
+        reaches_length.to_csv(processing_path.joinpath('input', output_file_name),sep=',', columns = ['Reach','length_m'])
 
+    def prepare_mass_flux_drainage_per_field(self, processing_path, mass_flux_drainage_per_field, output_file_name):
+        mass_flux_drainage_per_field.to_csv(processing_path.joinpath('input', output_file_name),sep=',', columns = ['Field','Mass_drainage_g_m2'])
 
+    def prepare_xdrainagerouting(self, processing_path, drainage_routing_file, output_file_name):
+        drainage_routing_file.to_csv(processing_path.joinpath('input', output_file_name), sep=',')
 
     def prepare_parameterization(self, parameter_file, processing_path, fields_area, reaches_length, mass_flux_drainage_per_field, drainage_routing_file, output_file):
         """
