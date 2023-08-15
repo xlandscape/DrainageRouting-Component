@@ -6,11 +6,10 @@ Function python
 """
 from config import load_config
 import sys
-import csv
-import numpy as np
+import numpy as np, datetime as dt, pandas as pd
 from pathlib import Path
-import pandas as pd
 import os
+
 
 C_import = np.array([[1,0,0,0],[0,1,1,0],[0,0,0,0],[0,0,1,0],[0,0,0,0]])
 field_names = np.array(['F1','F2','F3','F4'])
@@ -63,10 +62,8 @@ class AttributeDrainageFluxes :
 
         self.mass_flux_per_field_file = 'Jmass.csv' #self.config.fieldsMassFluxFile
         self.xdrainagerouting = 'matrix_xAquatics.csv'  #self.config.xdrainagerouting_file
-
         self.fields_area_file = 'fields_area.csv' #self.config.fieldsAreaFile
         self.reaches_lengths_file = 'reaches_length.csv'#self.config.reachesLengthFile
-        
         self.reaches = np.array(['R1','R2','R3','R4','R5']) # self.config.reaches
 
         self.HML_firstRow = None
