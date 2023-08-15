@@ -96,10 +96,10 @@ class AttributeDrainageFluxes :
         """returns the fluxes per reach per meter """
 
         df = pd.DataFrame(columns = reaches_names)
-
+    
         for i in np.arange(len(time)) :
-            flux_per_reach = np.matmul(matrix_flux, np.multiply(list(fields_flux.iloc[i]), list(fields_area['area_m2'] )))
-            lineic_flux_per_reach = np.divide(flux_per_reach, list(reaches_length['length_m']) )
+            flux_per_reach = np.matmul(matrix_flux, np.multiply(np.array(fields_flux.iloc[i]), np.array(fields_area['area_m2'] )))
+            lineic_flux_per_reach = np.divide(flux_per_reach, np.array(reaches_length['length_m']) )
             df = pd.concat([df,pd.DataFrame(data = [lineic_flux_per_reach], columns = reaches_names)]) # how are reaches_names obtained HAS to be the name of the columns of this input
         df.index = np.arange(len(time))
         time_df = pd.DataFrame(data = time)
@@ -107,9 +107,9 @@ class AttributeDrainageFluxes :
 
         with open(self.output_file, "w") as f:
             f.write(f"Time,LISTREACHES\n")
-            f.write("-, len(listreachess)*[g/m/h]\n")
+            f.write("-, len(listreaches)*[g/m/h]\n")
             f.write(lineicmassdra .to_string(index_names = False, header = False))
-            
+
     def create_array(self, dict, list):
         """returns an array of values for a given dictionnary and list """
         return [dict[element] for element in list]
