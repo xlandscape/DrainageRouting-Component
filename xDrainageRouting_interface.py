@@ -204,8 +204,8 @@ class xDRAINAGEROUTING_Wraper:
         column_names = ['F1','F2','F3','F4'] #self.metadatadrainage
         output_file = processing_path.joinpath('input', output_file_name)
         with open(output_file, "w") as f:
-        f.write("Time,LISTFIELDS\n")
-        f.write("-, len(listfields)*[g/m2]\n")
+            f.write("Time,LISTFIELDS\n")
+            f.write("-, len(listfields)*[g/m2]\n")
         for mass in mass_flux_drainage_per_field:
                 #f.write(f"{(time_series_start + datetime.timedelta(i)).strftime('%d-%b-%Y')},")
                 f.write(f"{mass}\n")
@@ -236,6 +236,7 @@ class xDRAINAGEROUTING_Wraper:
             f.write("experimentName = e1\n")
             f.write(f"runDirRoot = '..runs/test'\n")
             f.write(f"inputDir = {processing_path}\n")
+            f.write(f"onputDir = {output_file}\n")
             f.write(f"fields = np.array(['F1','F2','F3','F4']\n")  # to obtain from xdrainagerouting metadata
             f.write(f"reaches= np.array(['R601','R602','R603','R604','R605']) \n")  # to obtain from xdrainagerouting metadata
             f.write("overwrite = false\n")
