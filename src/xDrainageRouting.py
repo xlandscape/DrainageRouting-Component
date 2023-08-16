@@ -33,11 +33,11 @@ class AttributeDrainageFluxes :
         self.output_file = self.dir.joinpath('LineicMassDra.csv')
         self.input_dir = Path(self.config.inputDir)
 
-        self.mass_flux_per_field_file = 'Jmass.csv' #self.config.fieldsMassFluxFile
-        self.xdrainagerouting = 'matrix_xAquatics.csv'  #self.config.xdrainagerouting_file
-        self.fields_area_file = 'fields_area.csv' #self.config.fieldsAreaFile
-        self.reaches_lengths_file = 'reaches_length.csv'#self.config.reachesLengthFile
-        self.reaches = np.array(['R1','R2','R3','R4','R5']) # self.config.reaches
+        self.mass_flux_per_field_file = self.config_xdr.fieldsMassFluxFile
+        self.xdrainagerouting = self.config_xdr.xdrainagerouting_file
+        self.fields_area_file = self.config_xdr.fieldsAreaFile
+        self.reaches_lengths_file = self.config_xdr.reachesLengthFile
+        self.reaches = self.config.reaches
 
         self.HML_firstRow = None
         self.HML_nRow = None
