@@ -10,5 +10,5 @@
   output_lineic_file = '${general.inputDir}/LineicMassDra.csv'
   xdrainagerouting_file = '${general.inputDir}/xdrainagerouting.csv'
   fieldsAreaFile = '${general.inputDir}/fields_area.csv'
-  fieldsMassFluxFile  = '${general.inputDir}/input/Jmass.csv'
-  reachesLengthFile = '${general.inputDir}/input/reaches_length.csv'
+  fieldsMassFluxFile  = '${general.inputDir}/Jmass.csv'
+  reachesLengthFile = '${general.inputDir}/reaches_length.csv'
