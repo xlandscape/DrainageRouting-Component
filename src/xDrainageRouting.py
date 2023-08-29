@@ -105,21 +105,16 @@ class AttributeDrainageFluxes:
     ):
         """returns the fluxes per reach per meter"""
 
-        df = pd.DataFrame(columns=reaches_names)
+        flux_per_field = np.multiply(
+            fields_flux.to_numpy(), np.array(fields_area["area_m2"])
+        )
+        flux_per_reach = np.matmul(flux_per_field, matrix_flux.T)
+        lineic_flux_per_reach = np.divide(
+            flux_per_reach, np.array(reaches_length["length_m"])
+        )
+        df = pd.DataFrame(lineic_flux_per_reach, columns=reaches_names)
 
-        for i in np.arange(len(time)):
-            flux_per_reach = np.matmul(
-                matrix_flux,
-                np.multiply(
-                    np.array(fields_flux.iloc[i]), np.array(fields_area["area_m2"])
-                ),
-            )
-            lineic_flux_per_reach = np.divide(
-                flux_per_reach, np.array(reaches_length["length_m"])
-            )
-            df = pd.concat(
-                [df, pd.DataFrame(data=[lineic_flux_per_reach], columns=reaches_names)]
-            )  # how are reaches_names obtained HAS to be the name of the columns of this input
+        # how are reaches_names obtained HAS to be the name of the columns of this input
         df.index = np.arange(len(time))
         time_df = pd.DataFrame(data=time)
         lineicmassdra = pd.concat([time_df, df], axis=1).set_index(0)
