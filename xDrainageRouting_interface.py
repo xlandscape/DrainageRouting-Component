@@ -157,9 +157,7 @@ class xDRAINAGEROUTING_Wraper:
         """
 
         processing_path = Path('D:/2_Cascade_toxswa/xdrainagerouting-xaquatics')#self.inputs["ProcessingPath"].read().values
-
         drainage_routing_file = processing_path.joinpath('xdrainagerouting.csv')
-
         output_file = processing_path.joinpath('LineicMassDra.csv')
         parameterization_file = os.path.join(processing_path, "config.toml")
         drainage_routing = pd.read_csv(processing_path.joinpath('input', 'matrix_xAquatics.csv')) #self.inputs["DrainageRouting"].read().values
@@ -190,7 +188,6 @@ class xDRAINAGEROUTING_Wraper:
         self.prepare_mass_flux_drainage_per_field(processing_path, mass_flux_drainage_per_field, 'mass_flux_drainage_field.csv')
         self.prepare_reaches_length(processing_path, reaches_length,'reaches_length.csv')
         self.prepare_xdrainagerouting(processing_path, drainage_routing,'xdrainagerouting.csv')
-    
         self.prepare_parameterization(parameterization_file, processing_path,  fields_area, reaches_length, mass_flux_drainage_per_field, drainage_routing_file)
        # self.read_outputs(os.path.join(processing_path, "experiments", "e1"))
 
