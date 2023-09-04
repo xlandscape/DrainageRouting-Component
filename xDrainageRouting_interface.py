@@ -305,7 +305,7 @@ class xDRAINAGEROUTING_Wraper:
                     reaches = f.readline().split(",")
                     lineic_mass_drainage[t] = float(reaches[2])   # this is not going to work because our array is much larger
                   
-            self.outputs["LineicMassDrainage"].set_values(
+            self.outputs["LineicMassLoadingDrainage"].set_values(
                 lineic_mass_drainage, slices=(slice(number_time_steps), i), create=False)
 
 if __name__ == "__main__":
