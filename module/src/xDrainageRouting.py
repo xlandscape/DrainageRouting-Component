@@ -4,7 +4,7 @@ import field area
 
 Function python
 """
-from config import load_config
+import xdrainagerouting.module.src as xDR_component
 import sys
 import numpy as np, datetime as dt, pandas as pd
 from pathlib import Path
@@ -29,7 +29,7 @@ class AttributeDrainageFluxes:
             config_file_path: path to toml config file
         """
 
-        self.config_root = load_config(config_file_path)
+        self.config_root = xDR_component.load_config(config_file_path)
         self.config = self.config_root.general
         self.config_xdr = self.config_root.xroutingdrainage
         self.dir = Path(self.config.runDirRoot)
