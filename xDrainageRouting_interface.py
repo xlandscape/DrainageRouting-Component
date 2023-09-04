@@ -9,7 +9,7 @@ import os
 from pathlib import Path
 import pandas as pd
 import sys
-
+import xdrainagerouting.module.src as xDR_component
 
 def main(config_file_path: Path) -> None:
     """Entry point
@@ -62,7 +62,7 @@ class xDRAINAGEROUTING_Wraper:
             observer: The default observer used by the component.
             store: The data store used by the component.
         """
-        super(LandscapePEARL, self).__init__(name, observer, store)
+        super(xDR_component.LandscapePEARL, self).__init__(name, observer, store)
         self._module = base.Module("") #NAME MODULE
         self._inputs = base.InputContainer(self,[ 
            base.Input(
