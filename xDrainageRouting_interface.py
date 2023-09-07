@@ -72,28 +72,28 @@ class xDRAINAGEROUTING_Wraper:
                 description="""The working directory for the module. It is used for all files prepared as module inputs
                 or generated as module outputs."""
             ),        
-           base.Input(
-                "TimeSeriesStart",
-                (attrib.Class(datetime.date, 1), attrib.Unit(None, 1), attrib.Scales("global", 1)),
-                self.default_observer,
-                description="""The first time step for which input data is provided. 
-                This is also the time step of where
-                the CascadeToxswa simulation starts."""
-            ),
+        #    base.Input(
+        #         "TimeSeriesStart",
+        #         (attrib.Class(datetime.date, 1), attrib.Unit(None, 1), attrib.Scales("global", 1)),
+        #         self.default_observer,
+        #         description="""The first time step for which input data is provided. 
+        #         This is also the time step of where
+        #         the CascadeToxswa simulation starts."""
+        #     ),
             
-            base.Input(
-                "SimulationStart",
-                (attrib.Class(datetime.date, 1), attrib.Unit(None, 1), attrib.Scales("global", 1)),
-                self.default_observer,
-                description="""First date that is simulated"""
-            ),
+        #     base.Input(
+        #         "SimulationStart",
+        #         (attrib.Class(datetime.date, 1), attrib.Unit(None, 1), attrib.Scales("global", 1)),
+        #         self.default_observer,
+        #         description="""First date that is simulated"""
+        #     ),
             
-            base.Input(
-                "SimulationEnd",
-                (attrib.Class(datetime.date, 1), attrib.Unit(None, 1), attrib.Scales("global", 1)),
-                self.default_observer,
-                description="""Last date that is simulated"""
-            ),
+            # base.Input(
+            #     "SimulationEnd",
+            #     (attrib.Class(datetime.date, 1), attrib.Unit(None, 1), attrib.Scales("global", 1)),
+            #     self.default_observer,
+            #     description="""Last date that is simulated"""
+            # ),
                         base.Input(
                 "MasDraWatLay",
                 (attrib.Class(datetime.date, 1), 
