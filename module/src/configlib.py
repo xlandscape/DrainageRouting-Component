@@ -1,6 +1,6 @@
 from typing import NamedTuple, Type, TypeVar, Dict, Optional, Any, get_type_hints, List
 from pathlib import Path
-import tomllib
+from pip._vendor import tomli
 import re
 
 ConfigType = TypeVar("ConfigType", bound=NamedTuple)
@@ -22,7 +22,7 @@ def load_config(
         The loaded TOML config
     """
     with open(config_file_path, "rb") as f:
-        config_dict = dict(tomllib.load(f))
+        config_dict = dict(tomli.load(f))
     config = process_config(interpolate_config(config_dict), root_config_type)
     if squeeze and len(config) == 1:
         return config[0]

@@ -5,7 +5,7 @@ a named tuple.
 """
 from typing import NamedTuple
 from pathlib import Path
-import configlib
+import xdrainagerouting.module.src as xDR_component
 
 
 class ConfigRoot(NamedTuple):
@@ -14,6 +14,7 @@ class ConfigRoot(NamedTuple):
     general: "Config_general"
     xroutingdrainage: "Config_xroutingdrainage"
 
+
 class Config_general(NamedTuple):
     """General section"""
 
@@ -21,22 +22,25 @@ class Config_general(NamedTuple):
     inputDir: Path
     nProcessor: int
     overwrite: bool
-    fields : list
-    reaches : list
+    fields: list
+    reaches: list
+
 
 class Config_xroutingdrainage(NamedTuple):
-    xdrainagerouting_file : Path
-    output_lineic_file : Path
-    outputVars : str
-    fieldsAreaFile : Path
-    fieldsMassFluxFile : Path
-    reachesLengthFile : Path
+    xdrainagerouting_file: Path
+    output_lineic_file: Path
+    outputVars: str
+    fieldsAreaFile: Path
+    fieldsMassFluxFile: Path
+    reachesLengthFile: Path
+
 
 class Config_pearl(NamedTuple):
     """pearl section"""
 
     inputDirMeteo: Path
     pearlBinary: Path
+
 
 class Config(NamedTuple):
     """Section SAFE"""
@@ -51,4 +55,4 @@ class Config(NamedTuple):
 
 def load_config(file_path: Path) -> Config:
     """Read TOML config file and returns it as NamedTuple."""
-    return configlib.load_config(file_path, ConfigRoot, squeeze=True)
+    return xDR_component.configlib.load_config(file_path, ConfigRoot, squeeze=True)
