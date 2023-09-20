@@ -102,12 +102,20 @@ class xDrainageRouting_Wraper(base.Component):
                 ),
                 base.Input(
                     "FieldGeometries",
-                    (attrib.Class(str), attrib.Unit(None), attrib.Scales("global")),
+                    (
+                        attrib.Class(list[bytes], 1),
+                        attrib.Unit(None, 1),
+                        attrib.Scales("space/base_geometry", 1),
+                    ),
                     self.default_observer,
                 ),
                 base.Input(
                     "HydrographyGeometries",
-                    (attrib.Class(str), attrib.Unit(None), attrib.Scales("global")),
+                    (
+                        attrib.Class(str),
+                        attrib.Unit(None),
+                        attrib.Scales("space/reach", 1),
+                    ),
                     self.default_observer,
                 ),
                 base.Input(
@@ -147,7 +155,7 @@ class xDrainageRouting_Wraper(base.Component):
             self,
             (
                 base.Output(
-                    "LineicMassDrainage",
+                    "LineicMassLoadingDrainage",
                     default_store,
                     self,
                     # {
@@ -179,88 +187,137 @@ class xDrainageRouting_Wraper(base.Component):
             Nothing.
         """
 
-        processing_path = self.inputs["ProcessingPath"].read().values
-        drainage_routing_file = processing_path.joinpath("xdrainagerouting.csv")
-        output_file = processing_path.joinpath("LineicMassDra.csv")
-        parameterization_file = os.path.join(processing_path, "config.toml")
+        processing_path = Path(self.inputs["ProcessingPath"].read().values)
+        self.dir = processing_path.joinpath("experiment")
+        self.output_file = self.dir.joinpath("LineicMassDra.csv")
 
-        reaches_length = self.inputs["DrainageRouting"].read().values
-        mass_flux_drainage_per_field = self.inputs["MasDraWatLay"].read().values
-        fields_area = [
+        drainage_routing_file = processing_path.joinpath("xdrainagerouting.csv")
+        output_file = processing_path.joinpath("LineicMassDra_g_m_h.csv")
+        parameterization_file = os.path.join(processing_path, "config.toml")
+        self.fields = (
+            self.inputs["FieldGeometries"].read().element_names[0].get_values()
+        )
+        self.reaches = (
+            self.inputs["HydrographyGeometries"].read().element_names[0].get_values()
+        )
+        time_series_start = self.inputs["MasDraWatLay"].describe()["offsets"][0]
+        # startdate = datetime.strptime(time_series_start, "%Y/%m/%d")
+        number_time_steps = self.inputs["MasDraWatLay"].describe()["shape"][0]
+        self.time = range(number_time_steps)
+        # reaches_length = self.inputs["RoutingMatrix"].geometries[0]
+        self.fields_flux_data = self.inputs["MasDraWatLay"].read().values
+
+        # Below : to improve with using values retrieved from the RoutingMatrix instead
+        self.fields_area = [
             shapely.wkb.loads(geom).area
-            for geom in self.inputs["RoutingMatrix"].describe().read().values
+            for geom in self.inputs["FieldGeometries"].read().values
         ]
-        reaches_length = [
+        # At this stage values cannot be obtained fom the geometries of the drainage matrix
+        self.reaches_length = [
             shapely.wkb.loads(geom).length
             for geom in self.inputs["HydrographyGeometries"].read().values
         ]
 
-        drainage_routing = self.inputs["RoutingMatrix"].read().values
+        self.xdrainagerouting = self.inputs["RoutingMatrix"].read().values
 
         """
         above : section with data provided until the database can be used.
         to replace with the input
         """
-
-        self.prepare_field_area(processing_path, fields_area, "fields_area.csv")
-        self.prepare_mass_flux_drainage_per_field(
-            processing_path,
-            mass_flux_drainage_per_field,
-            "mass_flux_drainage_field.csv",
-        )
-        self.prepare_reaches_length(
-            processing_path, reaches_length, "reaches_length.csv"
-        )
-        self.prepare_xdrainagerouting(
-            processing_path, drainage_routing, "xdrainagerouting.csv"
-        )
-        self.prepare_parameterization(
-            parameterization_file,
-            processing_path,
-            fields_area,
-            reaches_length,
-            mass_flux_drainage_per_field,
-            drainage_routing_file,
+        self.lineicmassdra_file = self.attribute_fluxes_file(
+            self.fields_flux_data,
+            self.xdrainagerouting,
+            self.fields_area,
+            self.reaches_length,
+            self.reaches,
+            self.time,
         )
 
-    # self.read_outputs(os.path.join(processing_path, "experiments", "e1"))
+        # self.prepare_field_area(processing_path, fields_area, "fields_area.csv")
+        # self.prepare_mass_flux_drainage_per_field(
+        #     processing_path,
+        #     mass_flux_drainage_per_field,
+        #     "mass_flux_drainage_field.csv",
+        # )
+        # self.prepare_reaches_length(
+        #     processing_path, reaches_length, "reaches_length.csv"
+        # )
+        # self.prepare_xdrainagerouting(
+        #     processing_path, drainage_routing, "xdrainagerouting.csv"
+        # )
+        # self.prepare_parameterization(
+        #     parameterization_file,
+        #     processing_path,
+        #     self.fields_area,
+        #     self.reaches_length,
+        #     self.fields_flux_data,
+        #     drainage_routing_file,
+        # )
 
-    def prepare_field_area(self, processing_path, field_area_file, output_file_name):
-        field_area_file.to_csv(
-            processing_path.joinpath("input", output_file_name),
-            sep=",",
-            columns=["Field", "Area_m2"],
-        )
+        self.read_outputs(os.path.join(processing_path, "experiment"))
 
-    def prepare_reaches_length(self, processing_path, reaches_length, output_file_name):
-        reaches_length.to_csv(
-            processing_path.joinpath("input", output_file_name),
-            sep=",",
-            columns=["Reach", "length_m"],
-        )
+    # def prepare_field_area(self, processing_path, field_area_file, output_file_name):
+    #     field_area_file.to_csv(
+    #         processing_path.joinpath("input", output_file_name),
+    #         sep=",",
+    #         columns=["Field", "Area_m2"],
+    #     )
 
-    def prepare_mass_flux_drainage_per_field(
-        self, processing_path, mass_flux_drainage_per_field, output_file_name
+    # def prepare_reaches_length(self, processing_path, reaches_length, output_file_name):
+    #     reaches_length.to_csv(
+    #         processing_path.joinpath("input", output_file_name),
+    #         sep=",",
+    #         columns=["Reach", "length_m"],
+    #     )
+
+    # def prepare_mass_flux_drainage_per_field(
+    #     self, processing_path, mass_flux_drainage_per_field, output_file_name
+    # ):
+    #     column_names = self.fields  # self.metadatadrainage
+    #     output_file = processing_path.joinpath("input", output_file_name)
+    #     with open(output_file, "w") as f:
+    #         f.write("Time,LISTFIELDS\n")
+    #         f.write("-, len(listfields)*[g/m2]\n")
+    #     for mass in mass_flux_drainage_per_field:
+    #         # f.write(f"{(time_series_start + datetime.timedelta(i)).strftime('%d-%b-%Y')},")
+    #         f.write(f"{mass}\n")
+    #     mass_flux_drainage_per_field.to_csv(
+    #         processing_path.joinpath("input", output_file_name),
+    #         sep=",",
+    #         columns=["Field"],
+    #     )  # + )
+
+    # def prepare_xdrainagerouting(
+    #     self, processing_path, drainage_routing_file, output_file_name
+    # ):
+    #     drainage_routing_file.to_csv(
+    #         processing_path.joinpath("input", output_file_name), sep=","
+    #     )
+    def attribute_fluxes_file(
+        self,
+        fields_flux,
+        matrix_flux,
+        fields_area,
+        reaches_length,
+        reaches_names,
+        time,
     ):
-        column_names = ["F1", "F2", "F3", "F4"]  # self.metadatadrainage
-        output_file = processing_path.joinpath("input", output_file_name)
-        with open(output_file, "w") as f:
-            f.write("Time,LISTFIELDS\n")
-            f.write("-, len(listfields)*[g/m2]\n")
-        for mass in mass_flux_drainage_per_field:
-            # f.write(f"{(time_series_start + datetime.timedelta(i)).strftime('%d-%b-%Y')},")
-            f.write(f"{mass}\n")
-        mass_flux_drainage_per_field.to_csv(
-            processing_path.joinpath("input", output_file_name),
-            sep=",",
-            columns=["Field"],
-        )  # + )
+        """returns the fluxes per reach per meter"""
 
-    def prepare_xdrainagerouting(
-        self, processing_path, drainage_routing_file, output_file_name
-    ):
-        drainage_routing_file.to_csv(
-            processing_path.joinpath("input", output_file_name), sep=","
+        flux_per_field = np.multiply(fields_flux, np.array(fields_area))
+        flux_per_reach = np.matmul(flux_per_field, matrix_flux.T)
+        lineic_flux_per_reach = np.divide(flux_per_reach, reaches_length)
+        df = pd.DataFrame(lineic_flux_per_reach, columns=reaches_names)
+
+        # how are reaches_names obtained HAS to be the name of the columns of this input
+        df.index = np.arange(len(time))
+        time_df = pd.DataFrame(data=time)
+        lineicmassdra = pd.concat([time_df, df], axis=1).set_index(0)
+
+        lineicmassdra.to_csv(
+            self.output_file,
+            index=False,
+            header=self.reaches,
         )
 
     def prepare_parameterization(
@@ -294,12 +351,12 @@ class xDrainageRouting_Wraper(base.Component):
             f.write("experimentName = e1\n")
             f.write(f"runDirRoot = '..runs/test'\n")
             f.write(f"inputDir = {processing_path}\n")
-            f.write(f"onputDir = {output_file}\n")
+            f.write(f"outputDir = {output_file}\n")
             f.write(
-                f"fields = ['F1','F2','F3','F4']\n"
+                f"fields = {self.fields}\n"
             )  # to obtain from xdrainagerouting metadata
             f.write(
-                f"reaches= ['R601','R602','R603','R604','R605'] \n"
+                f"reaches= {self.reaches} \n"
             )  # to obtain from xdrainagerouting metadata
             f.write("overwrite = false\n")
             f.write(
@@ -359,29 +416,28 @@ class xDrainageRouting_Wraper(base.Component):
             Nothing.
         """
 
-        number_time_steps = (
-            365 * 24
-        )  # HOW TO GET NB of TIME STEP BASE ON START AND END DATE
-        time_series_start = self.inputs["SimulationStart"].read().values
+        number_time_steps = self.inputs["MasDraWatLay"].describe()["shape"][0]
+        time_series_start = self.inputs["MasDraWatLay"].describe()["offsets"][0]
 
-        self.outputs["LineicMassDrainage"].set_values(
+        self.outputs["LineicMassLoadingDrainage"].set_values(
             np.ndarray,
             shape=(number_time_steps, len(self.reaches)),
             chunks=(min(65536, number_time_steps), 1),
-            element_names=(None, reaches),
+            element_names=(
+                None,
+                self.inputs["RoutingMatrix"].describe()["element_names"][0],
+            ),
             offset=(time_series_start, None),
         )
 
-        for i, reach in enumerate(reaches):
+        for i, reach in enumerate(self.reaches):
             lineic_mass_drainage = np.zeros(number_time_steps)
 
             with open(os.path.join(output_path, f"LineicMassDra.csv")) as f:
                 f.readline()
                 for t in range(number_time_steps):
-                    reaches = f.readline().split(",")
-                    lineic_mass_drainage[t] = float(
-                        reaches[2]
-                    )  # this is not going to work because our array is much larger
+                    reach_row = f.readline().split(",")
+                    lineic_mass_drainage[t] = float(reach_row[i])
 
             self.outputs["LineicMassLoadingDrainage"].set_values(
                 lineic_mass_drainage, slices=(slice(number_time_steps), i), create=False
