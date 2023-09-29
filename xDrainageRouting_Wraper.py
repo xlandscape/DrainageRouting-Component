@@ -70,26 +70,6 @@ class xDrainageRouting_Wraper(base.Component):
                     description="""The working directory for the module. It is used for all files prepared as module inputs
                 or generated as module outputs.""",
                 ),
-                #    base.Input(
-                #         "TimeSeriesStart",
-                #         (attrib.Class(datetime.date, 1), attrib.Unit(None, 1), attrib.Scales("global", 1)),
-                #         self.default_observer,
-                #         description="""The first time step for which input data is provided.
-                #         This is also the time step of where
-                #         the CascadeToxswa simulation starts."""
-                #     ),
-                #     base.Input(
-                #         "SimulationStart",
-                #         (attrib.Class(datetime.date, 1), attrib.Unit(None, 1), attrib.Scales("global", 1)),
-                #         self.default_observer,
-                #         description="""First date that is simulated"""
-                #     ),
-                # base.Input(
-                #     "SimulationEnd",
-                #     (attrib.Class(datetime.date, 1), attrib.Unit(None, 1), attrib.Scales("global", 1)),
-                #     self.default_observer,
-                #     description="""Last date that is simulated"""
-                # ),
                 base.Input(
                     "MasDraWatLay",
                     (
@@ -112,7 +92,7 @@ class xDrainageRouting_Wraper(base.Component):
                 base.Input(
                     "HydrographyGeometries",
                     (
-                        attrib.Class(str),
+                        attrib.Class(list[bytes]),
                         attrib.Unit(None),
                         attrib.Scales("space/reach", 1),
                     ),
@@ -121,7 +101,7 @@ class xDrainageRouting_Wraper(base.Component):
                 base.Input(
                     "RoutingMatrix",
                     (
-                        attrib.Class(str, 1),
+                        attrib.Class(np.ndarray, 1),
                         attrib.Unit(None, 1),
                         attrib.Scales("space/base_geometry, space/reach"),
                     ),
@@ -158,23 +138,6 @@ class xDrainageRouting_Wraper(base.Component):
                     "LineicMassLoadingDrainage",
                     default_store,
                     self,
-                    # {
-                    #     "data_type": np.float,
-                    #     "scales": "time/hour, space/base_geometry",
-                    #     "unit": "g/m2/h",
-                    # },
-                    # "Mass flux per meter of reach resulting from the drainage of nearby fields at a specified\
-                    #  moment in time. Whether a field is drained to a reach is an information provided in the \
-                    #  landscape scenario component. The drained mass flux for each field (in g/m2/h) is calculated in the \
-                    #  landscape drainage component.",
-                    # {
-                    #     "type": np.ndarray,
-                    #     "shape": (
-                    #         "the number of time steps as given by the input",  # which input?
-                    #         "the number of reaches as given by the `Reaches` input",
-                    #     ),
-                    #     "chunks": "for fast retrieval of time series",
-                    # },
                 ),
             ),
         )
@@ -189,25 +152,18 @@ class xDrainageRouting_Wraper(base.Component):
 
         processing_path = Path(self.inputs["ProcessingPath"].read().values)
         self.dir = processing_path.joinpath("experiment")
-        self.output_file = self.dir.joinpath("LineicMassDra.csv")
+        self.output_file = self.dir.joinpath("LineicMassDra_g_m_h.csv")
 
-        drainage_routing_file = processing_path.joinpath("xdrainagerouting.csv")
-        output_file = processing_path.joinpath("LineicMassDra_g_m_h.csv")
-        parameterization_file = os.path.join(processing_path, "config.toml")
         self.fields = (
             self.inputs["FieldGeometries"].read().element_names[0].get_values()
         )
         self.reaches = (
             self.inputs["HydrographyGeometries"].read().element_names[0].get_values()
         )
-        time_series_start = self.inputs["MasDraWatLay"].describe()["offsets"][0]
-        # startdate = datetime.strptime(time_series_start, "%Y/%m/%d")
-        number_time_steps = self.inputs["MasDraWatLay"].describe()["shape"][0]
-        self.time = range(number_time_steps)
-        # reaches_length = self.inputs["RoutingMatrix"].geometries[0]
+        self.number_time_steps = self.inputs["MasDraWatLay"].describe()["shape"][0]
+        self.time = range(self.number_time_steps)
         self.fields_flux_data = self.inputs["MasDraWatLay"].read().values
 
-        # Below : to improve with using values retrieved from the RoutingMatrix instead
         self.fields_area = [
             shapely.wkb.loads(geom).area
             for geom in self.inputs["FieldGeometries"].read().values
@@ -320,90 +276,87 @@ class xDrainageRouting_Wraper(base.Component):
             header=self.reaches,
         )
 
-    def prepare_parameterization(
-        self,
-        parameter_file,
-        processing_path,
-        fields_area,
-        reaches_length,
-        mass_flux_drainage_per_field,
-        drainage_routing_file,
-        output_file,
-    ):
-        """
-        Prepares the module's parameterization.
+    # def prepare_parameterization(
+    #     self,
+    #     parameter_file,
+    #     processing_path,
+    #     fields_area,
+    #     reaches_length,
+    #     mass_flux_drainage_per_field,
+    #     drainage_routing_file,
+    #     output_file,
+    # ):
+    #     """
+    #     Prepares the module's parameterization.
 
-        Args:
-            parameter_file: The path for the parameterization file.
-            processing_path: The processing path for the module.
-            reacheslength_file: The path of the reach file reaches_lengths.csv.
-            fieldsarea_file: The path of the field file fields_area.csv.
-            fieldsarea_file: The path of the field file fields_area.csv.
-            drainage_routing_file : The path to the xdrainagerouting.csv.
-            output_file : the path to the LineicMassDra.csv
+    #     Args:
+    #         parameter_file: The path for the parameterization file.
+    #         processing_path: The processing path for the module.
+    #         reacheslength_file: The path of the reach file reaches_lengths.csv.
+    #         fieldsarea_file: The path of the field file fields_area.csv.
+    #         fieldsarea_file: The path of the field file fields_area.csv.
+    #         drainage_routing_file : The path to the xdrainagerouting.csv.
+    #         output_file : the path to the LineicMassDra.csv
 
-        Returns:
-            Nothing.
-        """
+    #     Returns:
+    #         Nothing.
+    #     """
 
-        with open(parameter_file, "w") as f:
-            f.write("[general]\n")
-            f.write("experimentName = e1\n")
-            f.write(f"runDirRoot = '..runs/test'\n")
-            f.write(f"inputDir = {processing_path}\n")
-            f.write(f"outputDir = {output_file}\n")
-            f.write(
-                f"fields = {self.fields}\n"
-            )  # to obtain from xdrainagerouting metadata
-            f.write(
-                f"reaches= {self.reaches} \n"
-            )  # to obtain from xdrainagerouting metadata
-            f.write("overwrite = false\n")
-            f.write(
-                f"nProcessor = 1"
-            )  # {self.inputs['NumberWorkers'].read().values}\n")
+    #     with open(parameter_file, "w") as f:
+    #         f.write("[general]\n")
+    #         f.write("experimentName = e1\n")
+    #         f.write(f"runDirRoot = '..runs/test'\n")
+    #         f.write(f"inputDir = {processing_path}\n")
+    #         f.write(f"outputDir = {output_file}\n")
+    #         f.write(
+    #             f"fields = {self.fields}\n"
+    #         )  # to obtain from xdrainagerouting metadata
+    #         f.write(
+    #             f"reaches= {self.reaches} \n"
+    #         )  # to obtain from xdrainagerouting metadata
+    #         f.write("overwrite = false\n")
+    #         f.write(
+    #             f"nProcessor = 1"
+    #         )  # {self.inputs['NumberWorkers'].read().values}\n")
 
-            # f.write(f"startDateSim = 01-Jan-1995") # = {self.inputs['TimeSeriesStart'].read().values.strftime('%d-%b-%Y')}\n") # to obtain from landscapescenario
-            # f.write(f"endDateSim = 31-Dec-1995") # {end_date_sim}\n") # to obtain from landscapescenario
+    #         f.write("\n[xroutingdrainage]\n")
+    #         f.write(
+    #             f"xdrainagerouting_file = {drainage_routing_file}\n"
+    #         )  # nR*nF matrix
+    #         f.write(f"output_lineic_file = {output_file}\n")
+    #         f.write("outputVars = 'LineicMassLoadingDrainage'\n")
+    #         f.write(f"fieldsAreaFile = Path({fields_area}\n")
+    #         f.write(f"fieldsMassFluxFile = Path({mass_flux_drainage_per_field}\n")
+    #         f.write(f"reachesLengthFile = Path({reaches_length}\n")
 
-            f.write("\n[xroutingdrainage]\n")
-            f.write(
-                f"xdrainagerouting_file = {drainage_routing_file}\n"
-            )  # nR*nF matrix
-            f.write(f"output_lineic_file = {output_file}\n")
-            f.write("outputVars = 'LineicMassLoadingDrainage'\n")
-            f.write(f"fieldsAreaFile = Path({fields_area}\n")
-            f.write(f"fieldsMassFluxFile = Path({mass_flux_drainage_per_field}\n")
-            f.write(f"reachesLengthFile = Path({reaches_length}\n")
+    # def run_xroutingdrainage(config_file_path, parameterization_file, processing_path):
+    #     """
+    #     Runs the module.
 
-    def run_xroutingdrainage(config_file_path, parameterization_file, processing_path):
-        """
-        Runs the module.
+    #     Args:
+    #         parameterization_file: The path of the parameterization file.
+    #         processing_path: The processing path of the module.
 
-        Args:
-            parameterization_file: The path of the parameterization file.
-            processing_path: The processing path of the module.
-
-        Returns:
-            Nothing.
-        """
-        python_exe = os.path.join(
-            os.path.dirname(__file__),
-            "module",
-            "WPy64-3760",
-            "python-3.7.6.amd64",
-            "python.exe",
-        )
-        # noinspection SpellCheckingInspection
-        python_script = os.path.join(
-            os.path.dirname(__file__), "module", "src", "xDrainageRouting.py"
-        )
-        base.run_process(
-            (python_exe, python_script, parameterization_file),
-            processing_path,
-            self.default_observer,
-            {"PATH": ""},
-        )
+    #     Returns:
+    #         Nothing.
+    #     """
+    #     python_exe = os.path.join(
+    #         os.path.dirname(__file__),
+    #         "module",
+    #         "WPy64-3760",
+    #         "python-3.7.6.amd64",
+    #         "python.exe",
+    #     )
+    #     # noinspection SpellCheckingInspection
+    #     python_script = os.path.join(
+    #         os.path.dirname(__file__), "module", "src", "xDrainageRouting.py"
+    #     )
+    #     base.run_process(
+    #         (python_exe, python_script, parameterization_file),
+    #         processing_path,
+    #         self.default_observer,
+    #         {"PATH": ""},
+    #     )
 
     def read_outputs(self, output_path):
         """
@@ -431,16 +384,18 @@ class xDrainageRouting_Wraper(base.Component):
         )
 
         for i, reach in enumerate(self.reaches):
-            lineic_mass_drainage = np.zeros(number_time_steps)
+            lineic_mass_drainage = np.zeros((number_time_steps, 1))
 
-            with open(os.path.join(output_path, f"LineicMassDra.csv")) as f:
+            with open(os.path.join(output_path, self.output_file)) as f:
                 f.readline()
                 for t in range(number_time_steps):
                     reach_row = f.readline().split(",")
                     lineic_mass_drainage[t] = float(reach_row[i])
 
             self.outputs["LineicMassLoadingDrainage"].set_values(
-                lineic_mass_drainage, slices=(slice(number_time_steps), i), create=False
+                lineic_mass_drainage,
+                slices=(slice(number_time_steps), slice(i, i + 1)),
+                create=False,
             )
 
     # def postprocess(self) -> None :
