@@ -200,7 +200,15 @@ class xDrainageRouting_Wraper(base.Component):
         reaches_names,
         time,
     ):
-        """returns the fluxes per reach per meter"""
+        """returns the fluxes per reach per meter
+
+        Args :
+
+
+        Returns :
+
+
+        """
 
         flux_per_field = np.multiply(fields_flux, np.array(fields_area))
         flux_per_reach = np.matmul(flux_per_field, matrix_flux.T)
