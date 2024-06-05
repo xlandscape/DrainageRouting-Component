@@ -45,7 +45,7 @@ class xDrainageRouting_Wraper(base.Component):
         default_store: typing.Optional[base.Store],
     ) -> None:
         """
-        Initializes the LandscapePEARL component.
+        Initializes the xDrainageRouting component.
 
         Args:
             name: The name of the component.
