@@ -15,7 +15,7 @@ import shapely.wkb
 import typing
 
 
-class xDrainageRouting_Wraper(base.Component):
+class xDrainageRouting_Wrapper(base.Component):
     """A component that encapsulates the xDrainageRouting module for usage within the xAquatics."""
 
     # # RELEASES
@@ -51,7 +51,7 @@ class xDrainageRouting_Wraper(base.Component):
             observer: The default observer used by the component.
             store: The data store used by the component.
         """
-        super(xDrainageRouting_Wraper, self).__init__(
+        super(xDrainageRouting_Wrapper, self).__init__(
             name, default_observer, default_store
         )
 
